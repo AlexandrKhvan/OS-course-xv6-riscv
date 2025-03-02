@@ -8,10 +8,10 @@ err_extra_space_msg:.asciz "Too many arguments found\n"
 err_empty_msg:      .asciz "Empty input\n"
 err_bad_number:     .asciz "Invalid number format\n"
 err_overflow_msg:   .asciz "Input too long\n"
+err_read_fail:      .asciz "Read error\n"
 
 .text
 .globl main
-
 
 main:
     addi sp, sp, -16
@@ -23,11 +23,11 @@ main:
     la   a0, buffer
     li   a1, BUFSIZE
     call gets
-    beqz a0, empty_input
+    beqz a0, read_error
 
     la a0, buffer
     call strlen
-    beq a0, x0, empty_input
+    beqz a0, empty_input
 
     la   t2, buffer
     li   t3, BUFSIZE-1
@@ -35,7 +35,7 @@ main:
 check_oflow:
     bge  t4, t3, overflow_err
     lb   t0, 0(t2)
-    beq  t0, x0, after_oflow
+    beqz t0, after_oflow
     addi t4, t4, 1
     addi t2, t2, 1
     j    check_oflow
@@ -44,24 +44,24 @@ after_oflow:
     la   a0, buffer
     li   a1, 32
     call strchr
-    beq  a0, x0, no_space
+    beqz a0, no_space
     move s0, a0
 
     addi a0, s0, 1
     li   a1, 32
     call strchr
-    bne  a0, x0, extra_space
+    bnez a0, extra_space
 
     li t0, 0
     sb t0, 0(s0)
 
     la a0, buffer
     call strlen
-    beq a0, x0, bad_number
+    beqz a0, bad_number
 
     addi a0, s0, 1
     call strlen
-    beq a0, x0, bad_number
+    beqz a0, bad_number
 
     addi a0, s0, 1
     call remove_newline
@@ -96,37 +96,50 @@ after_oflow:
     li a0, 0
     ecall
 
+read_error:
+    li a0, 2
+    la a1, err_read_fail
+    call print_error
+    li a7, 2
+    li a0, 1
+    ecall
+
 empty_input:
-    la a0, err_empty_msg
-    call printf
+    li a0, 2
+    la a1, err_empty_msg
+    call print_error
     li a7, 2
     li a0, 1
     ecall
 
 no_space:
-    la a0, err_no_space_msg
-    call printf
+    li a0, 2
+    la a1, err_no_space_msg
+    call print_error
     li a7, 2
     li a0, 1
     ecall
 
 extra_space:
-    la a0, err_extra_space_msg
-    call printf
+    li a0, 2
+    la a1, err_extra_space_msg
+    call print_error
     li a7, 2
     li a0, 1
     ecall
 
 bad_number:
-    la a0, err_bad_number
-    call printf
+    li a0, 2
+    la a1, err_bad_number
+    call print_error
     li a7, 2
     li a0, 1
     ecall
 
 overflow_err:
-    la a0, err_overflow_msg
-    call printf
+    li a0, 2
+    la a1, err_overflow_msg
+    call print_error
     li a7, 2
     li a0, 1
     ecall
@@ -170,4 +183,10 @@ digits_loop:
     j digits_loop
 
 digits_ok:
+    jr ra
+
+print_error:
+    li a7, 64
+    li a2, 50
+    ecall
     jr ra
