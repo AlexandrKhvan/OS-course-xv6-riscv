@@ -142,6 +142,21 @@ UPROGS=\
     $U/_sum\
     $U/_sum_asm\
     $U/_sys_add_test\
+    $U/_task1a\
+    $U/_task1b\
+    $U/_task2\
+
+$U/_task1a: $U/task1a.o $(ULIB)
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $U/_task1a $U/task1a.o $(ULIB)
+	$(OBJDUMP) -S $U/_task1a > $U/task1a.asm
+
+$U/_task1b: $U/task1b.o $(ULIB)
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $U/_task1b $U/task1b.o $(ULIB)
+	$(OBJDUMP) -S $U/_task1b > $U/task1b.asm
+
+$U/_task2: $U/task2.o $(ULIB)
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $U/_task2 $U/task2.o $(ULIB)
+	$(OBJDUMP) -S $U/_task2 > $U/task2.asm
 
 
 fs.img: mkfs/mkfs README $(UPROGS)
