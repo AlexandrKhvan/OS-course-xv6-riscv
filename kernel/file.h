@@ -1,5 +1,7 @@
+#ifndef FILE_H
+#define FILE_H
 struct file {
-  enum { FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE } type;
+  enum { FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE, FD_MUTEX } type;
   int ref; // reference count
   char readable;
   char writable;
@@ -7,12 +9,13 @@ struct file {
   struct inode *ip;  // FD_INODE and FD_DEVICE
   uint off;          // FD_INODE
   short major;       // FD_DEVICE
+  struct sleeplock *mutex; //FD_MUTEX
+  struct sleeplock *lk;
 };
 
 #define major(dev)  ((dev) >> 16 & 0xFFFF)
 #define minor(dev)  ((dev) & 0xFFFF)
 #define	mkdev(m,n)  ((uint)((m)<<16| (n)))
-
 // in-memory copy of an inode
 struct inode {
   uint dev;           // Device number
@@ -38,3 +41,6 @@ struct devsw {
 extern struct devsw devsw[];
 
 #define CONSOLE 1
+
+#endif
+
