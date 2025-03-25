@@ -23,6 +23,9 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
+struct procinfo;
+int ps_listinfo(struct procinfo *plist, int lim);
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "procinfo.h"
 
 uint64
 sys_exit(void)
@@ -90,4 +91,59 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+
+extern struct proc proc[NPROC];
+extern struct spinlock wait_lock;
+
+
+uint64
+sys_ps_listinfo(void) {
+  struct procinfo *uptr;
+  int lim;
+
+  argaddr(0, (uint64 *)&uptr);
+  argint(1, &lim);
+
+  if (uptr == 0) {
+    int count = 0;
+    for (int i = 0; i < NPROC; i++) {
+      struct proc *p = &proc[i];
+      acquire(&p->lock);
+      if (p->state != UNUSED)
+        count++;
+      release(&p->lock);
+    }
+    return count;
+  }
+
+  int written = 0;
+
+  for (int i = 0; i < NPROC; i++) {
+    if (written >= lim) {
+      return -2; // not enough space
+    }
+
+    struct proc *p = &proc[i];
+    acquire(&p->lock);
+    if (p->state != UNUSED) {
+      struct procinfo pi;
+      pi.pid = p->pid;
+      pi.ppid = p->parent ? p->parent->pid : -1;
+      safestrcpy(pi.name, p->name, sizeof(pi.name));
+      pi.state = p->state;
+      release(&p->lock);
+
+      if (copyout(myproc()->pagetable, (uint64)&uptr[written], (char *)&pi, sizeof(pi)) < 0) {
+        return -1;
+      }
+
+      written++;
+    } else {
+      release(&p->lock);
+    }
+  }
+
+  return written;
 }
