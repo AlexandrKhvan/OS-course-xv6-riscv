@@ -93,57 +93,59 @@ sys_uptime(void)
   return xticks;
 }
 
-
 extern struct proc proc[NPROC];
 extern struct spinlock wait_lock;
 
-
 uint64
 sys_ps_listinfo(void) {
-  struct procinfo *uptr;
+  struct procinfo *plist;
   int lim;
 
-  argaddr(0, (uint64 *)&uptr);
+  argaddr(0, (uint64*)&plist);
   argint(1, &lim);
 
-  if (uptr == 0) {
-    int count = 0;
-    for (int i = 0; i < NPROC; i++) {
-      struct proc *p = &proc[i];
-      acquire(&p->lock);
-      if (p->state != UNUSED)
-        count++;
-      release(&p->lock);
-    }
-    return count;
-  }
+  struct proc *p;
+  struct proc *pp;
+  int i = 0;
+  struct procinfo pi;
 
-  int written = 0;
-
-  for (int i = 0; i < NPROC; i++) {
-    if (written >= lim) {
-      return -2; // not enough space
-    }
-
-    struct proc *p = &proc[i];
+  for (p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
-    if (p->state != UNUSED) {
-      struct procinfo pi;
-      pi.pid = p->pid;
-      pi.ppid = p->parent ? p->parent->pid : -1;
-      safestrcpy(pi.name, p->name, sizeof(pi.name));
-      pi.state = p->state;
+    if (p->state == UNUSED) {
       release(&p->lock);
+      continue;
+    }
 
-      if (copyout(myproc()->pagetable, (uint64)&uptr[written], (char *)&pi, sizeof(pi)) < 0) {
+    pi.pid = p->pid;
+    pi.state = p->state;
+    safestrcpy(pi.name, p->name, PNAMELEN);
+
+    acquire(&wait_lock);
+    pp = p->parent;
+    if (pp != 0) {
+      acquire(&pp->lock);
+      pi.ppid = pp->pid;
+      safestrcpy(pi.pname, pp->name, PNAMELEN);
+      release(&pp->lock);
+    } else {
+      pi.ppid = -1;
+      safestrcpy(pi.pname, "(none)", PNAMELEN);
+    }
+    release(&wait_lock);
+
+    if (plist) {
+      if (i >= lim) {
+        release(&p->lock);
+        return -2;
+      }
+      if (copyout(myproc()->pagetable, (uint64)&plist[i], (char*)&pi, sizeof(pi)) < 0) {
+        release(&p->lock);
         return -1;
       }
-
-      written++;
-    } else {
-      release(&p->lock);
     }
+    i++;
+    release(&p->lock);
   }
 
-  return written;
+  return i;
 }

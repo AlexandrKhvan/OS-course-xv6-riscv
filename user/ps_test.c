@@ -47,8 +47,8 @@ void test_large_buffer() {
   }
   printf("[OK] test_large_buffer: got %d processes\n", n);
   for (int i = 0; i < n; i++) {
-    printf("  PID=%d PPID=%d Name=%s State=%s\n",
-           buf[i].pid, buf[i].ppid, buf[i].name, state_name(buf[i].state));
+    printf("  PID=%d PPID=%d Name=%s PName=%s State=%s\n",
+           buf[i].pid, buf[i].ppid, buf[i].name, buf[i].pname, state_name(buf[i].state));
   }
 }
 
