@@ -2,9 +2,14 @@
 #include "user/user.h"
 
 void print_args(const char *who, char **argv, int pid) {
+  char buf[2] = {0};
   for (int i = 0; argv[i]; i++) {
+    if (strcmp(argv[i], "-m") == 0)
+      continue;
+
     for (int j = 0; argv[i][j]; j++) {
-      printf("%s (pid=%d): arg %d, char '%c'\n", who, pid, i, argv[i][j]);
+      buf[0] = argv[i][j];
+      printf("%s (pid=%d): arg %d, char '%s'\n", who, pid, i, buf);
     }
   }
 }

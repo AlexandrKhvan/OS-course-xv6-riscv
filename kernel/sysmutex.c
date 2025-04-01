@@ -62,7 +62,7 @@ sys_mutex_unlock(void) {
   if (f == 0 || f->type != FD_MUTEX || f->mutex == 0)
     return -1;
 
-  if (!(f->mutex->locked && f->mutex->pid == p->pid))
+  if (!holdingsleep(f->mutex))
     return -1;
 
   releasesleep(f->mutex);
