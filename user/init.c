@@ -8,7 +8,7 @@
 #include "kernel/file.h"
 #include "user/user.h"
 #include "kernel/fcntl.h"
-
+#include "kernel/param.h"
 char *argv[] = { "sh", 0 };
 
 int
@@ -22,6 +22,12 @@ main(void)
   }
   dup(0);  // stdout
   dup(0);  // stderr
+
+  mkdir("dev");
+  mknod("/dev/null",     MISC, M_NULL);
+  mknod("/dev/zero",     MISC, M_ZERO);
+  mknod("/dev/urandom",  MISC, M_URANDOM);
+  mknod("/dev/nullstat", MISC, M_NULLSTAT);
 
   for(;;){
     printf("init: starting sh\n");

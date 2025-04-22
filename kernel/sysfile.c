@@ -503,3 +503,8 @@ sys_pipe(void)
   }
   return 0;
 }
+
+extern int consoleread(int, int, uint64, int);
+extern int consolewrite(int, int, uint64, int);
+extern int misc_read(int,int,uint64,int);
+extern int misc_write(int,int,uint64,int);

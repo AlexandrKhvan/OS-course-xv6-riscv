@@ -13,3 +13,8 @@
 #define MAXPATH      128   // maximum file path name
 #define USERSTACK    1     // user stack pages
 
+#define MISC  3
+#define M_NULL      0
+#define M_ZERO      1
+#define M_URANDOM   2
+#define M_NULLSTAT  3

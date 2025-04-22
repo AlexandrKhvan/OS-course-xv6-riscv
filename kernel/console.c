@@ -56,7 +56,7 @@ struct {
 // user write()s to the console go here.
 //
 int
-consolewrite(int user_src, uint64 src, int n)
+consolewrite(int minor, int user_src, uint64 src, int n)
 {
   int i;
 
@@ -77,7 +77,7 @@ consolewrite(int user_src, uint64 src, int n)
 // or kernel address.
 //
 int
-consoleread(int user_dst, uint64 dst, int n)
+consoleread(int minor, int user_dst, uint64 dst, int n)
 {
   uint target;
   int c;
@@ -178,6 +178,8 @@ consoleintr(int c)
   release(&cons.lock);
 }
 
+extern void miscdevinit(void);
+
 void
 consoleinit(void)
 {
@@ -189,4 +191,5 @@ consoleinit(void)
   // to consoleread and consolewrite.
   devsw[CONSOLE].read = consoleread;
   devsw[CONSOLE].write = consolewrite;
+  miscdevinit();
 }
