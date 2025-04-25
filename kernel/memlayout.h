@@ -57,3 +57,8 @@
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+
+// Real Time Clock (Goldfish RTC) registers
+#define RTC_BASE 0x101000
+#define RTC_LOW  (RTC_BASE + 0x00)  // lower 32 bits
+#define RTC_HIGH (RTC_BASE + 0x04)  // upper 32 bits
